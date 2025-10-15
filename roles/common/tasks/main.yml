@@ -21,7 +21,7 @@
       - conntrack
       - iptables
       - ca-certificates
-      - nfs-common   # ➕ installation NFS
+      - nfs-common  
     state: present
 
 - name: Mettre à niveau les paquets installés
