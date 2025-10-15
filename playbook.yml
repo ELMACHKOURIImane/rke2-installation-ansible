@@ -1,0 +1,42 @@
+---
+- hosts: all
+  become: true
+  roles:
+    - common
+
+- hosts: master
+  become: true
+  roles:
+    - rke2-server
+    - rancher
+
+# ➕ Étape de vérification avant de joindre les agents
+- hosts: master
+  become: true
+  tasks:
+    - name: Vérifier que le service RKE2 server est actif
+      systemd:
+        name: rke2-server
+        state: started
+      register: rke2_service
+
+    - name: Vérifier que l’API Kubernetes répond sur le port 6443
+      wait_for:
+        host: "{{ ansible_host }}"
+        port: 6443
+        timeout: 120
+        state: started
+      when: rke2_service.status.ActiveState == "active"
+
+
+# Si tout est bon → on déploie les workers
+- hosts: master-join
+  become: true
+  roles:
+    - rke2-server-join
+
+# Si tout est bon → on déploie les workers
+- hosts: worker
+  become: true
+  roles:
+    - rke2-agent

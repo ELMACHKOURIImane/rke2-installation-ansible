@@ -1,0 +1,47 @@
+---
+# === 1. Désactiver le pare-feu UFW ===
+- name: Désactiver UFW (pare-feu logiciel)
+  systemd:
+    name: ufw
+    state: stopped
+    enabled: false
+  ignore_errors: true
+
+# === 2. Mise à jour du système ===
+- name: Mettre à jour la liste des paquets
+  apt:
+    update_cache: yes
+
+- name: Installer dépendances nécessaires
+  apt:
+    name:
+      - curl
+      - tar
+      - socat
+      - conntrack
+      - iptables
+      - ca-certificates
+      - nfs-common   # ➕ installation NFS
+    state: present
+
+- name: Mettre à niveau les paquets installés
+  apt:
+    upgrade: yes
+    autoremove: yes
+
+# === 3. Désactiver le swap (nécessaire pour Kubernetes) ===
+- name: Désactiver le swap immédiatement
+  command: swapoff -a
+  ignore_errors: true
+
+- name: Désactiver le swap au redémarrage
+  replace:
+    path: /etc/fstab
+    regexp: '^([^#].*\s+swap\s+.*)$'
+    replace: '# \1'
+  ignore_errors: true
+
+# === 4. Nettoyage ===
+- name: Supprimer les paquets inutiles
+  apt:
+    autoremove: yes
