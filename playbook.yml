@@ -10,7 +10,7 @@
     - rke2-server
     - rancher
 
-# ➕ Étape de vérification avant de joindre les agents
+# == Etape de vérification avant de joindre les agents
 - hosts: master
   become: true
   tasks:
